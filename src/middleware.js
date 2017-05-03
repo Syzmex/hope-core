@@ -3,8 +3,7 @@
 import is, { property, kindOf } from './is';
 import { HOPE_ACTION, invariant } from './utils';
 
-
-export default function hopeMiddlewareFactory( _options = {}) {
+export default function middlewareFactory( _options = {}) {
   const getHandler = property( 'handler' );
   const isHopeAction = property( HOPE_ACTION );
   return store => next => action => {

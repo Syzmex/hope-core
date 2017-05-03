@@ -5,7 +5,7 @@ import is, { kindOf } from './is';
 import { invariant } from './utils';
 
 /**
- * cache some values that want to use globally or some values will appear in future
+ * cache some values those use globally or will appear in future
  */
 
 let collection = new Map();
@@ -48,7 +48,7 @@ const wait = ( key, func, always ) => {
   return { key, clear };
 };
 
-const watch = ( key, func ) => wait( key, func, false );
+const watch = ( key, func ) => wait( key, func, true );
 
 const dispense = ( key, value ) => {
   if ( key ) {

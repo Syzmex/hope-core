@@ -21,12 +21,12 @@ function storageFactory( storageInstance ) {
   storage.set = function ( name, value ) {
     let val = value;
     invariant(
-      is.Array( value ) || is.PlainObject( value ),
-      `Hope: Expecting value of ${type}.set is a plain-object or array in instanceof check, but got ${kindOf( value )}`,
+      is.Array( value ) || is.PlainObject( value ) || is.String( value ),
+      `Hope: Expecting value of ${type}.set is a plain-object or array or string in instanceof check, but got ${kindOf( value )}`,
     );
     if ( is.Array( value )) {
       val = `_array_|${JSON.stringify( value )}`;
-    } else {
+    } else if ( is.PlainObject( value )) {
       val = `_object_|${JSON.stringify( value )}`;
     }
     storageInstance.setItem( name, val );

@@ -13,10 +13,10 @@ export function hopeEnhancer( action ) {
   return Object.defineProperty( action, HOPE_ACTION, { value: true });
 }
 
-export const isDevelopment = process.env.NODE_ENV === 'development';
+export const isDev = process && process.env.NODE_ENV === 'development';
 
 export function log( level, message, error = '' ) {
-  if ( isDevelopment ) {
+  if ( isDev ) {
     /* eslint-disable no-console */
     if ( typeof window === 'undefined' ) {
       console.log( `Hope: ${message}\n${( error && error.stack ) || error}` );

@@ -59,7 +59,7 @@ function setHeaders( xhr, { headers, dataType, method }) {
   }
 
   if ( !hasContentType( headers ) && method !== 'get' ) {
-    headers['Content-Type'] = MIMETYPES[TYPE] || MIMETYPES.POST;
+    headers['Content-Type'] = MIMETYPES.POST;
   }
 
   Object.keys( headers ).forEach( name => {
@@ -279,7 +279,7 @@ function xhrConnection( method, url, data, options ) {
  *   url: string,
  *   withCredentials: boolean
  *   crossDomain: boolean,
- *   async: boolean,
+ *   // async: boolean,
  *   user: string,
  *   password: string,
  *   dataType: string,
@@ -298,7 +298,7 @@ const defaultOption = {
   url: '',
   withCredentials: false,
   crossDomain: false,
-  async: true,
+  // async: true,
   user: '',
   password: '',
   dataType: 'json',
@@ -315,7 +315,7 @@ function getOption({
   url,
   withCredentials,
   crossDomain,
-  async,
+  // async,
   user,
   password,
   dataType,
@@ -384,12 +384,14 @@ function getOption({
   //   options.dataType = 'formdata';
   // }
 
-  const cacheControl = headers['Cache-Control'];
-  if ( !cache && !is.String( cacheControl ) && cacheControl ) {
-    options.headers['Cache-Control'] = 'no-cache';
+  if ( is.Object( headers )) {
+    const cacheControl = headers['Cache-Control'];
+    if ( !cache && !is.String( cacheControl ) && cacheControl ) {
+      options.headers['Cache-Control'] = 'no-cache';
+    }
   }
 
-  options.async = !!async;
+  options.async = true;
 
   invariant(
     options.url || options.baseUrl,

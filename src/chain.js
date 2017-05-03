@@ -23,7 +23,7 @@ function getResult( results ) {
 function setStatusWapper( chains ) {
   return function ( resultSet ) {
     try {
-      setStatus( resultSet.chain, FULFILLED );
+      setStatus( resultSet.chain, resultSet.err ? REJECTED : FULFILLED );
       return chains( resultSet );
     } catch ( err ) {
       resultSet.err = err;
@@ -196,13 +196,13 @@ class Chain {
       if ( chs.every( chain => chain._state !== PENDING )) {
         const chainResults = chs.map( chain => chain._result );
         if ( chs.some( chain => chain._state === REJECTED )) {
-          chn.reject( chainResults );
+          chn.reject( ...chainResults );
         }
         chn.resolve( chainResults );
       }
     }
     chains.forEach( chain => {
-      chain.always(() => checkAll( chains ));
+      chain.always(() => checkAll( chains )).catch(() => {});
     });
     return chn;
   }
@@ -220,7 +220,7 @@ class Chain {
       }
     }
     chains.forEach( chain => {
-      chain.always(() => checkOne( chains ));
+      chain.always(() => checkOne( chains )).catch(() => {});
     });
     return chn;
   }

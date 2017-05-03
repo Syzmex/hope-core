@@ -1,17 +1,18 @@
 {
   "name": "hope-core",
-  "version": "0.2.1",
+  "version": "0.3.8",
   "description": "Common utils for SPA.",
-  "repository": "https://github.com/xutou12/hope-core.git",
+  "repository": "https://github.com/Syzmex/hope-core.git",
   "keywords": [
     "hope-core"
   ],
+  "main": "lib/index",
   "authors": [
-    "xutou12 <25213322@qq.com> (https://github.com/xutou12)"
+    "ZhenyuXu <25213322@qq.com> (https://github.com/Syzmex)"
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/xutou12/hope-core/issues"
+    "url": "https://github.com/Syzmex/hope-core/issues"
   },
   "files": [
     "src",
@@ -26,7 +27,6 @@
     "precommit": "npm run lint"
   },
   "dependencies": {
-    "@fdaciuk/ajax": "^2.1.5",
     "events": "^1.1.1",
     "invariant": "^2.2.2",
     "is-plain-object": "^2.0.1",
@@ -35,7 +35,6 @@
     "kind-of": "^3.1.0",
     "object.pick": "^1.2.0",
     "omit.js": "^0.1.0",
-    "qwest": "^4.4.5",
     "split-string": "^1.0.0"
   },
   "devDependencies": {
@@ -92,7 +91,6 @@
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-webpack": "^2.0.2",
     "mocha": "^3.2.0",
-    "mocha-phantomjs": "^4.1.0",
     "mockjs": "^1.0.1-beta3",
     "react-dev-utils": "^0.5.2",
     "rimraf": "^2.5.4",

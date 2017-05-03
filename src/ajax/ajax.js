@@ -26,14 +26,14 @@ const globalMap = {
 
   setURLTokens( pairs ) {
     const tokens = globalMap.tokens;
-    Object.entries( pairs ).froEach(([ token, value ]) => {
+    Object.entries( pairs ).forEach(([ token, value ]) => {
       tokens.set( new RegExp( `{${token}}`, 'g' ), value );
     });
   },
 
   setURLAlias( aliases, transform ) {
     const urls = globalMap.urls;
-    Object.entries( aliases ).froEach(([ alias, url ]) => {
+    Object.entries( aliases ).forEach(([ alias, url ]) => {
       urls[alias] = url;
     });
     if ( is.Function( transform )) {
@@ -56,7 +56,7 @@ const globalMap = {
   URLTransform( alias, tokens ) {
     let url = globalMap.urls[alias];
     if ( url ) {
-      tokens.forEach(( regexp, value ) => {
+      tokens.forEach(( value, regexp ) => {
         if ( regexp.test( url )) {
           url = url.replace( regexp, value );
         }
@@ -97,7 +97,7 @@ const allocator = ( resolve, reject, options ) => ( success ) => ( cdResponse, x
 
 
 function URLFormat( alias ) {
-  globalMap.URLTransform( alias, globalMap.tokens );
+  return globalMap.URLTransform( alias, globalMap.tokens );
 }
 
 
@@ -284,8 +284,7 @@ function Ajax( url, options ) {
           .always(() => remove( ajaxObject ));
       } else {
         ajaxObject = newAjax( options )
-          .then(() => remove( ajaxObject ))
-          .catch(() => remove( ajaxObject ));
+          .always(() => remove( ajaxObject ));
       }
       xhrs.push( ajaxObject );
       return xhrs;
@@ -323,9 +322,9 @@ function Ajax( url, options ) {
       }
     }).catch( err => {
       if ( handlerCatch ) {
-        return handlerCatch( err );
+        return handlerCatch( err.length === 1 ? err[0] : err );
       }
-      throw err;
+      // throw err.length === 1 ? err[0] : err;
     });
   }
 

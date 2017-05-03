@@ -3,7 +3,6 @@
 import omit from 'omit.js';
 import Ajax from './ajax/ajax';
 import compose from './compose';
-import { invariant } from './utils';
 import is from './is';
 
 

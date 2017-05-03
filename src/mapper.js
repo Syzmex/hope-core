@@ -4,7 +4,7 @@ import split from 'split-string';
 import isPrimitive from 'is-primitive';
 import compose from './compose';
 import is, { kindOf } from './is';
-import { invariant, log, isDevelopment } from './utils';
+import { invariant, log } from './utils';
 
 
 const separator = '.';
@@ -22,9 +22,7 @@ const getValueFinder = function ( source ) {
       try {
         return transform( value[key]);
       } catch ( err ) {
-        if ( isDevelopment ) {
-          log( 'error', `Hope: A error has occurred when read the ${JSON.stringify( keys )}.`, err );
-        }
+        log( 'error', `Hope: A error has occurred when read the ${JSON.stringify( keys )}.`, err );
         return value;
       }
     }, source );
@@ -38,8 +36,8 @@ const getFormater = function ( formater ) {
     const funcs = formater.slice( 1, formater.length );
     invariant(
       formater.length >= 2 &&
-      !funcs.same( func => !is.Function( func )) &&
-      is.String( format ) && formaterCheck.test( format ),
+      !funcs.some( func => !is.Function( func )) &&
+      is.String( format ) && formaterCheck( format ),
       "Hope: Expecting formater is a array like [ '$:..', ...Functions ]."
     );
     return [ format, compose( ...funcs ) ];
