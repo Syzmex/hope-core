@@ -16,7 +16,7 @@ const getAll = () => [...collection];
 const wait = ( key, func, always ) => {
 
   invariant(
-    is.Defiend( key ),
+    is.Defined( key ),
     'Hope: key of store.wait should not be undefined/null'
   );
 

@@ -7,10 +7,11 @@ export { invariant };
 export const sym = id => Symbol( id );
 
 // Symbol HOPE_ACTION
-export const HOPE_ACTION = sym( 'HOPE_ACTION' );
+export const HOPE_ACTION = Symbol( 'HOPE_ACTION' );
 
 export function hopeEnhancer( action ) {
-  return Object.defineProperty( action, HOPE_ACTION, { value: true });
+  return Object.assign( action, { [HOPE_ACTION]: true });
+  // return Object.defineProperty( action, HOPE_ACTION, { value: true });
 }
 
 export const isDev = process && process.env.NODE_ENV === 'development';

@@ -67,18 +67,20 @@ function Polling( options ) {
   function send() {
     timer = null;
     const ajaxOptions = omit( options, [ 'interval', 'getToken' ]);
-    return Ajax( ajaxOptions ).always( alwaysHandle ).finally(() => {
+    const { url, ...otherOptions } = ajaxOptions;
+    xhr = Ajax( url, otherOptions ).always( alwaysHandle ).always(() => {
       if ( started ) {
         xhr = null;
-        timer = setTimeout(() => send(), options.interval );
+        timer = setTimeout( send, options.interval );
       }
     });
+    return xhr;
   }
 
   function start() {
     if ( !started ) {
       started = true;
-      xhr = send();
+      send();
     }
     return returnMethod;
   }

@@ -217,12 +217,17 @@ function xhrConnection( method, url, data, options ) {
 
   // timeout
   let timeout;
+  let handleOntimeout;
+  const ontimeout = () => {
+    xhr.statusText_ = 'timeout';
+    ( options.ontimeout || handleOntimeout )();
+  };
   if ( options.async ) {
     if ( xhr2 ) {
       xhr.timeout = options.timeout;
-      xhr.ontimeout = options.ontimeout;
-    } else if ( options.ontimeout ) {
-      timeout = setTimeout( handleTimeout( xhr, options.ontimeout ), options.timeout );
+      xhr.ontimeout = ontimeout;
+    } else {
+      timeout = setTimeout( handleTimeout( xhr, ontimeout ), options.timeout );
     }
   } else if ( xdr ) {
     xhr.ontimeout = function () {};
@@ -241,6 +246,8 @@ function xhrConnection( method, url, data, options ) {
   const handleResponse = () => ready(
     xhr2, xdr, ctors, timeout, aborted, xhr
   )( appendMethods );
+  handleOntimeout = handleResponse;
+
   if ( xhr2 || xdr ) {
     xhr.onload = handleResponse;
     xhr.onerror = handleResponse;
@@ -261,6 +268,7 @@ function xhrConnection( method, url, data, options ) {
         clearTimeout( timeout );
       }
       aborted = true;
+      xhr.statusText_ = 'abort';
       xhr.abort();
     }
   };

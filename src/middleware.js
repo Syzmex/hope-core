@@ -7,12 +7,11 @@ export default function middlewareFactory( _options = {}) {
   const getHandler = property( 'handler' );
   const isHopeAction = property( HOPE_ACTION );
   return store => next => action => {
-    const { payload, type } = action;
     if ( isHopeAction( action )) {
-      const handler = getHandler( payload );
+      const handler = getHandler( action );
       invariant(
         is.Function( handler ),
-        `Hope: Expecting handler of ${type} is a function in instanceof check, but got ${kindOf( handler )}`
+        `Hope: Expecting handler of ${action.type} is a function in instanceof check, but got ${kindOf( handler )}`
       );
       handler( store, action );
     }

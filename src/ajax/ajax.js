@@ -27,7 +27,7 @@ const globalMap = {
   setURLTokens( pairs ) {
     const tokens = globalMap.tokens;
     Object.entries( pairs ).forEach(([ token, value ]) => {
-      tokens.set( new RegExp( `{${token}}`, 'g' ), value );
+      tokens.set( token, [ new RegExp( `{${token}}`, 'g' ), value ]);
     });
   },
 
@@ -56,7 +56,7 @@ const globalMap = {
   URLTransform( alias, tokens ) {
     let url = globalMap.urls[alias];
     if ( url ) {
-      tokens.forEach(( value, regexp ) => {
+      tokens.forEach(([ regexp, value ]) => {
         if ( regexp.test( url )) {
           url = url.replace( regexp, value );
         }
@@ -79,19 +79,22 @@ const globalMap = {
 
 // eslint-disable-next-line
 const allocator = ( resolve, reject, options ) => ( success ) => ( cdResponse, xhr ) => {
-  const response = globalMap.dataTransform( cdResponse );
+  const transform = globalMap.dataTransform;
   if ( success ) {
     if ( is.Function( options.assert )) {
-      options.assert( response, resolve, reject );
+      options.assert( transform( cdResponse ), resolve, reject );
     } else {
-      globalMap.assert( response, resolve, reject );
+      globalMap.assert( transform( cdResponse ), resolve, reject );
     }
   // abort/timeout only print one warn
+  // opened and no status code has been received from the server,status === 0
   } else if ( xhr.status === 0 ) {
-    const txt = xhr.statusText === 'timeout' ? 'timeout' : 'abort';
+    const txt = xhr.statusText_ === 'timeout' ? 'timeout' : 'abort';
+    delete xhr.statusText_;
     log( 'warn', `Url (${options.url}) is ${txt}.` );
+    reject( transform( cdResponse, txt ));
   } else {
-    reject( response );
+    reject( transform( cdResponse, xhr.statusText ));
   }
 };
 
@@ -144,6 +147,14 @@ function getOptions( url, options_ ) {
   if ( is.String( options.url )) {
     options.url = URLFormat( options.url );
   }
+
+  // if ( is.PlainObject( options.data )) {
+  //   options.data = Object.keys( options.data ).reduce(( memo, key ) => {
+  //     const value = options.data[key];
+  //     memo[key] = is.Defined( value ) ? value : '';
+  //     return memo;
+  //   }, {});
+  // }
 
   return options;
 }
@@ -325,6 +336,10 @@ function Ajax( url, options ) {
         return handlerCatch( err.length === 1 ? err[0] : err );
       }
       // throw err.length === 1 ? err[0] : err;
+    }).then(() => {
+      if ( handlerFinally ) {
+        handlerFinally();
+      }
     });
   }
 
