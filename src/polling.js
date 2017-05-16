@@ -3,6 +3,7 @@
 import omit from 'omit.js';
 import Ajax from './ajax/ajax';
 import compose from './compose';
+import { log } from './utils';
 import is from './is';
 
 
@@ -16,6 +17,7 @@ const noop = () => {};
 
 const defaultOption = {
   interval: 1000,
+  retryTimes: 10,
   timeout: 30 * 60 * 1000,
   getToken: noop
 };
@@ -24,6 +26,7 @@ const defaultOption = {
 function getOption({
   interval,
   timeout,
+  retryTimes,
   getToken,
   ...other
 }) {
@@ -40,6 +43,10 @@ function getOption({
     options.timeout = Math.max( 0, timeout );
   }
 
+  if ( is.Number( retryTimes )) {
+    options.retryTimes = retryTimes > 0 ? retryTimes : defaultOption.retryTimes;
+  }
+
   if ( is.Function( getToken )) {
     options.getToken = getToken;
   }
@@ -53,25 +60,37 @@ function Polling( options ) {
   let xhr;
   let timer;
   let started;
+  let interval = 0;
+  let retryTimes = options.retryTimes;
   let callbacks = noop;
   const returnMethod = {};
 
 
   function alwaysHandle( err, results ) {
     if ( !err ) {
+      interval = 0;
+      retryTimes = options.retryTimes;
       const token = options.getToken( results[0]);
       callbacks({ token, result: results[0] });
+    } else {
+      interval = Math.min( interval + options.interval, 6000 );
+      retryTimes -= 1;
     }
   }
 
   function send() {
     timer = null;
-    const ajaxOptions = omit( options, [ 'interval', 'getToken' ]);
+    const ajaxOptions = omit( options, [ 'interval', 'retryTimes', 'getToken' ]);
     const { url, ...otherOptions } = ajaxOptions;
-    xhr = Ajax( url, otherOptions ).always( alwaysHandle ).always(() => {
+    xhr = Ajax( url, otherOptions ).always( alwaysHandle ).always( err => {
       if ( started ) {
         xhr = null;
-        timer = setTimeout( send, options.interval );
+        if ( !err || ( err && retryTimes > 0 )) {
+          timer = setTimeout( send, interval );
+          log( 'log', `Polling will try to conenct after ${interval / 1000} second.` );
+        } else if ( err && retryTimes === 0 ) {
+          log( 'warn', `Polling have tried to conenct ${options.retryTimes} times.` );
+        }
       }
     });
     return xhr;

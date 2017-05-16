@@ -356,7 +356,7 @@ function Ajax( url, options ) {
 
 
   // add xhr connection
-  [ 'then', 'catch', 'always', 'finally' ].forEach( func => {
+  [ 'then', 'catch', 'before', 'always', 'finally' ].forEach( func => {
     const funcBody = chainMethod[func];
     chainMethod[func] = function ( callback ) {
       connection();
