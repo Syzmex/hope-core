@@ -1,5 +1,4 @@
 
-
 import is from '../is';
 import compose from '../compose';
 import { invariant } from '../utils';
@@ -82,9 +81,9 @@ function getDataType( xhr ) {
 function convertors( dataType ) {
   return function ( xhr, convertor ) {
     if ( dataType ) {
-      return convertor( dataType, xhr );
+      return convertor( dataType, xhr.response );
     }
-    return convertor( getDataType( xhr ), xhr );
+    return convertor( getDataType( xhr ), xhr.response );
   };
 }
 
@@ -237,7 +236,7 @@ function xhrConnection( method, url, data, options ) {
     try {
       xhr.responseType = options.dataType;
       nativeParsing = ( xhr.responseType === options.dataType );
-    } catch ( e ) {}
+    } catch ( e ) {} // eslint-disable-line
   } else {
     xhr.overrideMimeType( MIMETYPES[options.dataType.toUpperCase()]);
   }
@@ -378,7 +377,7 @@ function getOption({
     }
   }
 
-  if ( Object.keys( MIMETYPES ).includes( dataType )) {
+  if ( Object.keys( MIMETYPES ).includes( dataType.toUpperCase())) {
     options.dataType = dataType;
   }
 

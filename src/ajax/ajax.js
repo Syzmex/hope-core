@@ -66,11 +66,11 @@ const globalMap = {
     return alias;
   },
 
-  dataTransform( response, type_ ) {
+  dataTransform( type_, response, error_, xhr_ ) {
     return response;
   },
 
-  assert( response, resolve_, reject_ ) {
+  assert( type_, response, resolve_, reject_ ) {
     resolve_( response );
   }
 
@@ -79,12 +79,13 @@ const globalMap = {
 
 // eslint-disable-next-line
 const allocator = ( resolve, reject, options ) => ( success ) => ( cdResponse, xhr ) => {
+  const { dataType } = options;
   const transform = globalMap.dataTransform;
   if ( success ) {
     if ( is.Function( options.assert )) {
-      options.assert( transform( cdResponse ), resolve, reject );
+      options.assert( dataType, transform( dataType, cdResponse, null, xhr ), resolve, reject );
     } else {
-      globalMap.assert( transform( cdResponse ), resolve, reject );
+      globalMap.assert( dataType, transform( dataType, cdResponse, null, xhr ), resolve, reject );
     }
   // abort/timeout only print one warn
   // opened and no status code has been received from the server,status === 0
@@ -92,9 +93,9 @@ const allocator = ( resolve, reject, options ) => ( success ) => ( cdResponse, x
     const txt = xhr.statusText_ === 'timeout' ? 'timeout' : 'abort';
     delete xhr.statusText_;
     log( 'warn', `Url (${options.url}) is ${txt}.` );
-    reject( transform( cdResponse, txt ));
+    reject( transform( dataType, cdResponse, txt, xhr ));
   } else {
-    reject( transform( cdResponse, xhr.statusText ));
+    reject( transform( dataType, cdResponse, xhr.statusText, xhr ));
   }
 };
 
@@ -139,9 +140,9 @@ function getOptions( url, options_ ) {
     options[ajaxHandler] = url;
   }
 
-  // type default 'text'
-  if ( is.Undefined( options.type ) || options.type === '' ) {
-    options.type = 'text';
+  // dataType default 'json'
+  if ( is.Undefined( options.dataType ) || options.dataType === '' ) {
+    options.dataType = 'json';
   }
 
   if ( is.String( options.url )) {
@@ -163,7 +164,7 @@ function getOptions( url, options_ ) {
 /**
  * options {
  *   assert,
- *   type: 'text',
+ *   dataType: 'text',
  *   headers: object
  *   timeout: number
  *   ontimeout: function
