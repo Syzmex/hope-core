@@ -21,7 +21,7 @@ const ACCEPT = {
 
 
 function hasHeader( name_ ) {
-  return function ( headers ) {
+  return function( headers ) {
     return Object.keys( headers ).some( name => name.toLowerCase() === name_.toLowerCase());
   };
 }
@@ -79,7 +79,7 @@ function getDataType( xhr ) {
 }
 
 function convertors( dataType ) {
-  return function ( xhr, convertor ) {
+  return function( xhr, convertor ) {
     if ( dataType ) {
       return convertor( dataType, xhr.response );
     }
@@ -87,45 +87,53 @@ function convertors( dataType ) {
   };
 }
 
-function parseResponse( xhr, ctors ) {
+function parseResponse( xhr, ctors, havaNoError ) {
   let result;
-  try {
-    if ( ctors ) {
-      result = ctors( xhr, convertor );
-    } else {
-      result = xhr.response;
+  if ( havaNoError ) {
+    try {
+      if ( ctors ) {
+        result = ctors( xhr, convertor );
+      } else {
+        result = xhr.response;
+      }
+    } catch ( e ) {
+      result = 'parseerror';
     }
-  } catch ( e ) {
-    result = xhr.response;
+  } else {
+    result = xhr.statusText;
   }
   return [ result, xhr ];
 }
 
-function ready( xhr2, xdr, ctors, timeout, aborted, xhr ) {
+function ready( xhr2, xdr, ctors, timeout, xhr ) {
   return function handleReady( appendMethods ) {
+      // 0 - (未初始化)还没有调用send()方法
+      // 1 - (载入)已调用send()方法，正在发送请求
+      // 2 - (载入完成)send()方法执行完成，
+      // 3 - (交互)正在解析响应内容
+      // 4 - (完成)响应内容解析完成，可以在客户端调用了
     if ( xhr.readyState === xhr.DONE ) {
       if ( timeout ) {
         clearTimeout( timeout );
       }
-      if ( !aborted ) {
-        if ( xhr2 || xdr ) {
-          xhr.onload = null;
-          xhr.onerror = null;
-        } else if ( xhr.removeEventListener ) {
-          xhr.removeEventListener( 'readystatechange', handleReady, false );
-        } else {
-          xhr.onreadystatechange = null;
+      if ( xhr2 || xdr ) {
+        xhr.onload = null;
+        xhr.onerror = null;
+      } else if ( xhr.removeEventListener ) {
+        xhr.removeEventListener( 'readystatechange', handleReady, false );
+      } else {
+        xhr.onreadystatechange = null;
+      }
+      const havaNoError = ( xhr.status >= 200 && xhr.status < 300 ) || xhr.status === 304;
+      if ( havaNoError ) {
+        if ( appendMethods.then ) {
+          appendMethods.then( ...parseResponse( xhr, ctors, true ));
         }
-        if (( xhr.status >= 200 && xhr.status < 300 ) || xhr.status === 304 ) {
-          if ( appendMethods.then ) {
-            appendMethods.then( ...parseResponse( xhr, ctors ));
-          }
-        } else if ( appendMethods.catch ) {
-          appendMethods.catch( ...parseResponse( xhr, ctors ));
-        }
-        if ( appendMethods.finally ) {
-          appendMethods.finally( ...parseResponse( xhr, ctors ));
-        }
+      } else if ( appendMethods.catch ) {
+        appendMethods.catch( ...parseResponse( xhr, ctors, false ));
+      }
+      if ( appendMethods.finally ) {
+        appendMethods.finally( ...parseResponse( xhr, ctors, havaNoError ));
       }
     }
   };
@@ -133,7 +141,7 @@ function ready( xhr2, xdr, ctors, timeout, aborted, xhr ) {
 
 
 function handleTimeout( xhr, ontimeout ) {
-  return function () {
+  return function() {
     if ( !xhr.aborted ) {
       xhr.abort();
       if ( ontimeout ) {
@@ -177,7 +185,6 @@ function fixXhr( xhr_, options ) {
 
 function xhrConnection( method, url, data, options ) {
 
-  let aborted;
   let nativeParsing;
   let queryString = '';
   const appendMethods = {};
@@ -229,7 +236,7 @@ function xhrConnection( method, url, data, options ) {
       timeout = setTimeout( handleTimeout( xhr, ontimeout ), options.timeout );
     }
   } else if ( xdr ) {
-    xhr.ontimeout = function () {};
+    xhr.ontimeout = function() {};
   }
 
   if ( xhr2 ) {
@@ -243,16 +250,17 @@ function xhrConnection( method, url, data, options ) {
 
   const ctors = nativeParsing || convertors( options.dataType );
   const handleResponse = () => ready(
-    xhr2, xdr, ctors, timeout, aborted, xhr
+    xhr2, xdr, ctors, timeout, xhr
   )( appendMethods );
   handleOntimeout = handleResponse;
 
   if ( xhr2 || xdr ) {
     xhr.onload = handleResponse;
     xhr.onerror = handleResponse;
+    xhr.onabort = handleResponse;
     // http://cypressnorth.com/programming/internet-explorer-aborting-ajax-requests-fixed/
     if ( xdr ) {
-      xhr.onprogress = function () {};
+      xhr.onprogress = function() {};
     }
   } else if ( xhr.addEventListener ) {
     xhr.addEventListener( 'readystatechange', handleResponse, false );
@@ -261,13 +269,12 @@ function xhrConnection( method, url, data, options ) {
   }
 
   xhr.send( method !== 'get' ? objectToQueryString( data ) : null );
-  promiseMethods.abort = function () {
-    if ( !aborted ) {
+  promiseMethods.abort = function() {
+    if ( !xhr.aborted ) {
       if ( timeout ) {
         clearTimeout( timeout );
       }
-      aborted = true;
-      xhr.statusText_ = 'abort';
+      xhr.aborted = true;
       xhr.abort();
     }
   };
@@ -381,15 +388,15 @@ function getOption({
     options.dataType = dataType;
   }
 
-  // if ( 'ArrayBuffer' in window && data instanceof ArrayBuffer ) {
-  //   options.dataType = 'arraybuffer';
-  // } else if ( 'Blob' in window && data instanceof Blob ) {
-  //   options.dataType = 'blob';
-  // } else if ( 'Document' in window && data instanceof Document ) {
-  //   options.dataType = 'document';
-  // } else if ( 'FormData' in window && data instanceof FormData ) {
-  //   options.dataType = 'formdata';
-  // }
+  if ( 'ArrayBuffer' in window && data instanceof ArrayBuffer ) {
+    options.dataType = 'arraybuffer';
+  } else if ( 'Blob' in window && data instanceof Blob ) {
+    options.dataType = 'blob';
+  } else if ( 'Document' in window && data instanceof Document ) {
+    options.dataType = 'document';
+  } else if ( 'FormData' in window && data instanceof FormData ) {
+    options.dataType = 'formdata';
+  }
 
   if ( is.Object( headers )) {
     const cacheControl = headers['Cache-Control'];

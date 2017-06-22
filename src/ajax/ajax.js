@@ -90,12 +90,19 @@ const allocator = ( resolve, reject, options ) => ( success ) => ( cdResponse, x
   // abort/timeout only print one warn
   // opened and no status code has been received from the server,status === 0
   } else if ( xhr.status === 0 ) {
-    const txt = xhr.statusText_ === 'timeout' ? 'timeout' : 'abort';
-    delete xhr.statusText_;
+    const txt = xhr.aborted ? 'abort' : 'timeout';
     log( 'warn', `Url (${options.url}) is ${txt}.` );
-    reject( transform( dataType, cdResponse, txt, xhr ));
+    reject( transform( dataType, cdResponse, txt, xhr ), {
+      xhr,
+      status: xhr.status,
+      statusText: txt
+    });
   } else {
-    reject( transform( dataType, cdResponse, xhr.statusText, xhr ));
+    reject( transform( dataType, cdResponse, xhr.statusText, xhr ), {
+      xhr,
+      status: xhr.status,
+      statusText: xhr.statusText
+    });
   }
 };
 
@@ -149,13 +156,13 @@ function getOptions( url, options_ ) {
     options.url = URLFormat( options.url );
   }
 
-  // if ( is.PlainObject( options.data )) {
-  //   options.data = Object.keys( options.data ).reduce(( memo, key ) => {
-  //     const value = options.data[key];
-  //     memo[key] = is.Defined( value ) ? value : '';
-  //     return memo;
-  //   }, {});
-  // }
+  // null/undefined => String('')
+  if ( is.PlainObject( options.data )) {
+    options.data = Object.entries( options.data ).reduce(( memo, [ key, value ]) => {
+      memo[key] = is.Defined( value ) ? value : '';
+      return memo;
+    }, {});
+  }
 
   return options;
 }
@@ -164,7 +171,7 @@ function getOptions( url, options_ ) {
 /**
  * options {
  *   assert,
- *   dataType: 'text',
+ *   dataType: 'json',
  *   headers: object
  *   timeout: number
  *   ontimeout: function
