@@ -91,7 +91,7 @@ function parseResponse( xhr, ctors, havaNoError ) {
   let result;
   if ( havaNoError ) {
     try {
-      if ( ctors ) {
+      if ( is.Function( ctors )) {
         result = ctors( xhr, convertor );
       } else {
         result = xhr.response;

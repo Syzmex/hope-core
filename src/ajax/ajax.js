@@ -92,17 +92,9 @@ const allocator = ( resolve, reject, options ) => ( success ) => ( cdResponse, x
   } else if ( xhr.status === 0 ) {
     const txt = xhr.aborted ? 'abort' : 'timeout';
     log( 'warn', `Url (${options.url}) is ${txt}.` );
-    reject( transform( dataType, cdResponse, txt, xhr ), {
-      xhr,
-      status: xhr.status,
-      statusText: txt
-    });
+    reject( transform( dataType, cdResponse, txt, xhr ));
   } else {
-    reject( transform( dataType, cdResponse, xhr.statusText, xhr ), {
-      xhr,
-      status: xhr.status,
-      statusText: xhr.statusText
-    });
+    reject( transform( dataType, cdResponse, xhr.statusText, xhr ));
   }
 };
 
