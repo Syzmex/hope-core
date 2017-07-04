@@ -89,6 +89,11 @@ function convertors( dataType ) {
 
 function parseResponse( xhr, ctors, havaNoError ) {
   let result;
+
+  if ( typeof xhr.responseType === 'undefined' ) {
+    xhr.response = xhr.responseText;
+  }
+
   if ( havaNoError ) {
     try {
       if ( is.Function( ctors )) {
@@ -217,7 +222,7 @@ function xhrConnection( method, url, data, options ) {
   }
 
   // headers
-  if ( !xdr ) {
+  if ( 'setRequestHeader' in xhr ) {
     setHeaders( xhr, options );
   }
 
@@ -242,9 +247,9 @@ function xhrConnection( method, url, data, options ) {
   if ( xhr2 ) {
     try {
       xhr.responseType = options.dataType;
-      nativeParsing = ( xhr.responseType === options.dataType );
+      nativeParsing = xhr2 && ( xhr.responseType === options.dataType );
     } catch ( e ) {} // eslint-disable-line
-  } else {
+  } else if ( 'overrideMimeType' in xhr ) {
     xhr.overrideMimeType( MIMETYPES[options.dataType.toUpperCase()]);
   }
 

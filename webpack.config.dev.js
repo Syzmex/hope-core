@@ -32,7 +32,10 @@ export default {
       use: [urlLoader({ name: staticFileName })]
     }, {
       test: /\.jsx?$/,
-      include: paths.appSrc,
+      include: [
+        paths.appSrc,
+        paths.resolveApp( 'public/index.js' )
+      ],
       use: [babelLoader()]
     }, {
       test: /\.tsx?$/,

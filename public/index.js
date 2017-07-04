@@ -2,14 +2,18 @@
  * @flow
  */
 
+import 'babel-polyfill';
 import * as hope from '../src';
 
 console.log( hope );
 
 const { Ajax } = hope;
 
-const ajax = Ajax( '/do/config.json' ).then(( ...a ) => {
-  console.log( a );
+const ajax = Ajax( '/cui/do/admin/public/soft/about.do' ).then(( a ) => {
+  console.log(typeof a)
+  // alert( 1 );
+  // alert( typeof a );
 }).catch(( ...b ) => {
-  console.log( ...b );
+  // alert( b );
+  // alert( ...b );
 });

@@ -2,7 +2,7 @@
 export default {
   port: 8000,
   proxy: {
-    '/do/*': {
+    '/cui/do/*': {
       target: 'http://192.168.1.3',
       changeOrigin: true
     }
