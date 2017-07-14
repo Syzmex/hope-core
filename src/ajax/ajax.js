@@ -94,7 +94,7 @@ const allocator = ( resolve, reject, options ) => ( success ) => ( cdResponse, x
     log( 'warn', `Url (${options.url}) is ${txt}.` );
     reject( transform( dataType, cdResponse, txt, xhr ));
   } else {
-    reject( transform( dataType, cdResponse, xhr.statusText, xhr ));
+    reject( transform( dataType, cdResponse, xhr.statusText || 'Unknow error', xhr ));
   }
 };
 
@@ -245,14 +245,14 @@ function Ajax( url, options ) {
     if ( sending ) {
       if ( next ) {
         const prev = next;
-        next = function ( ...result ) {
+        next = function( ...result ) {
           return prev( ...result ).ajax( options || ajaxHandler );
         };
       } else {
         next = ajaxHandler
-          ? function ( ...result ) {
+          ? function( ...result ) {
             return ajaxHandler( ...result ).finally( handlerFinally );
-          } : function () {
+          } : function() {
             return Ajax( options ).finally( handlerFinally );
           };
       }
@@ -276,7 +276,7 @@ function Ajax( url, options ) {
 
   function append( funcName, ...args ) {
     const prev = next;
-    next = function ( ...result ) {
+    next = function( ...result ) {
       return prev( ...result )[funcName]( ...args );
     };
   }
@@ -358,7 +358,7 @@ function Ajax( url, options ) {
   // add xhr connection
   [ 'then', 'catch', 'before', 'always', 'finally' ].forEach( func => {
     const funcBody = chainMethod[func];
-    chainMethod[func] = function ( callback ) {
+    chainMethod[func] = function( callback ) {
       connection();
       if ( callback ) {
         funcBody( callback );
@@ -372,7 +372,7 @@ function Ajax( url, options ) {
   [ 'ajax', 'get', 'post', 'put', 'delete', 'before', 'then', 'catch',
     'always', 'finally' ].forEach( func => {
       const body = chainMethod[func];
-      chainMethod[func] = function ( ...args ) {
+      chainMethod[func] = function( ...args ) {
         if ( next ) {
           append( func, ...args );
           return chainMethod;

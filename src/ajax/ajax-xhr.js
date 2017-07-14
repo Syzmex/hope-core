@@ -87,27 +87,41 @@ function convertors( dataType ) {
   };
 }
 
-function parseResponse( xhr, ctors, havaNoError ) {
-  let result;
+function parseResponse( xhr, ctors, codePass ) {
 
-  if ( typeof xhr.responseType === 'undefined' ) {
+  let success = codePass;
+  let result = null;
+  let error = null;
+
+  if (
+    typeof xhr.response === 'undefined' && (
+    typeof xhr.responseType === 'undefined' ||
+    xhr.responseType === '' ||
+    xhr.responseType === 'text' )
+  ) {
     xhr.response = xhr.responseText;
   }
 
-  if ( havaNoError ) {
+  if ( codePass ) {
     try {
       if ( is.Function( ctors )) {
         result = ctors( xhr, convertor );
+      } else if ( xhr.response === null ) {
+        success = false;
+        error = 'parseerror';
       } else {
         result = xhr.response;
       }
     } catch ( e ) {
-      result = 'parseerror';
+      success = false;
+      error = 'parseerror';
     }
   } else {
-    result = xhr.statusText;
+    error = xhr.statusText;
   }
-  return [ result, xhr ];
+  return {
+    success, result, error
+  };
 }
 
 function ready( xhr2, xdr, ctors, timeout, xhr ) {
@@ -129,16 +143,18 @@ function ready( xhr2, xdr, ctors, timeout, xhr ) {
       } else {
         xhr.onreadystatechange = null;
       }
-      const havaNoError = ( xhr.status >= 200 && xhr.status < 300 ) || xhr.status === 304;
-      if ( havaNoError ) {
+      const codePass = ( xhr.status >= 200 && xhr.status < 300 ) || xhr.status === 304;
+      const { success, result, error } = parseResponse( xhr, ctors, codePass );
+
+      if ( success ) {
         if ( appendMethods.then ) {
-          appendMethods.then( ...parseResponse( xhr, ctors, true ));
+          appendMethods.then( result, xhr );
         }
       } else if ( appendMethods.catch ) {
-        appendMethods.catch( ...parseResponse( xhr, ctors, false ));
+        appendMethods.catch( error, xhr );
       }
       if ( appendMethods.finally ) {
-        appendMethods.finally( ...parseResponse( xhr, ctors, havaNoError ));
+        appendMethods.finally( error, result, xhr );
       }
     }
   };

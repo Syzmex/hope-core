@@ -1,6 +1,6 @@
 
 
-export default function ( type, data ) {
+export default function( type, data ) {
 
   let response;
 
@@ -12,7 +12,7 @@ export default function ( type, data ) {
           if ( 'JSON' in global ) {
             response = JSON.parse( data );
           } else {
-            response = new Function( `return (${data})` )();
+            response = new Function( `return (${data})` )(); // eslint-disable-line
           }
         } catch ( e ) {
           throw Error( `Hope: Error while parsing JSON body : ${e}` );
