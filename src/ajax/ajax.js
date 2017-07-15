@@ -92,9 +92,9 @@ const allocator = ( resolve, reject, options ) => ( success ) => ( cdResponse, x
   } else if ( xhr.status === 0 ) {
     const txt = xhr.aborted ? 'abort' : 'timeout';
     log( 'warn', `Url (${options.url}) is ${txt}.` );
-    reject( transform( dataType, cdResponse, txt, xhr ));
+    reject( transform( dataType, null, txt, xhr ));
   } else {
-    reject( transform( dataType, cdResponse, xhr.statusText || 'Unknow error', xhr ));
+    reject( transform( dataType, null, cdResponse, xhr ));
   }
 };
 
@@ -398,7 +398,9 @@ Object.assign( Ajax, pick( globalMap, [
   'setURLAlias',
   'setDataTransform',
   'setAssert'
-]));
+]), {
+  getURL: URLFormat
+});
 
 export default Ajax;
 
