@@ -35,14 +35,12 @@ const wait = ( key, func, always ) => {
     func( get( key ), clear );
   }
 
-  if ( value !== undefined ) {
-    func( value, clear );
-  } else if ( !always ) {
-    emitter.once( key, handle );
-  }
-
   if ( always ) {
     emitter.on( key, handle );
+  } else if ( value !== undefined ) {
+    func( value, clear );
+  } else {
+    emitter.once( key, handle );
   }
 
   return { key, clear };
