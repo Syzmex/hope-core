@@ -1,6 +1,4 @@
 
-
-/* globals sessionStorage:true localStorage:true document:true window:true */
 import is, { kindOf } from './is';
 import { invariant, log } from './utils';
 
@@ -18,7 +16,7 @@ function storageFactory( storageInstance ) {
   const sringifyRegexp = /^(_array_|_object_)\|/;
   const type = storageInstance === sessionStorage ? 'session' : 'storage';
 
-  storage.set = function ( name, value ) {
+  storage.set = function( name, value ) {
     let val = value;
     invariant(
       is.Array( value ) || is.PlainObject( value ) || is.String( value ),
@@ -32,7 +30,7 @@ function storageFactory( storageInstance ) {
     storageInstance.setItem( name, val );
   };
 
-  storage.get = function ( name ) {
+  storage.get = function( name ) {
     const value = storageInstance.getItem( name );
     try {
       if ( sringifyRegexp.test( value )) {
@@ -44,7 +42,7 @@ function storageFactory( storageInstance ) {
     return value;
   };
 
-  storage.has = function ( name ) {
+  storage.has = function( name ) {
     return is.Defined( storage.get( name ));
   };
 
@@ -64,7 +62,7 @@ function storageFactory( storageInstance ) {
     }
   };
 
-  storage.getAll = function () {
+  storage.getAll = function() {
     const all = {};
     storage.forEach(( key, val ) => ( all[key] = val ));
     return all;
@@ -78,14 +76,14 @@ function storageFactory( storageInstance ) {
  * browser cookie
  */
 
-const checkCookieName = function ( name ) {
+const checkCookieName = function( name ) {
   invariant(
     isNonEmptyString( name ),
     'Hope: Cookie name must be a non-empty string.',
   );
 };
 
-const decode = function ( value ) {
+const decode = function( value ) {
   try {
     return decodeURIComponent( value );
   } catch ( err ) {
@@ -94,7 +92,7 @@ const decode = function ( value ) {
   return value;
 };
 
-const encode = function ( value ) {
+const encode = function( value ) {
   try {
     return encodeURIComponent( value );
   } catch ( err ) {
@@ -103,7 +101,7 @@ const encode = function ( value ) {
   return value;
 };
 
-const parseCookie = function ( str ) {
+const parseCookie = function( str ) {
   const obj = {};
   const pairs = str.split( /\s*;\s*/ );
 
@@ -118,10 +116,10 @@ const parseCookie = function ( str ) {
 };
 
 
-const cookieFactory = function () {
+const cookieFactory = function() {
   const cookie = {};
 
-  cookie.set = function ( name, value, options = {}) {
+  cookie.set = function( name, value, options = {}) {
     let expires = options.expires || options.maxage;
     const secure = options.secure;
     const domain = options.domain;
@@ -167,7 +165,7 @@ const cookieFactory = function () {
     document.cookie = txt;
   };
 
-  cookie.getAll = function () {
+  cookie.getAll = function() {
     try {
       return parseCookie( document.cookie );
     } catch ( err ) {
@@ -176,7 +174,7 @@ const cookieFactory = function () {
     return {};
   };
 
-  cookie.get = function ( name, opts = {}) {
+  cookie.get = function( name, opts = {}) {
     checkCookieName( name );
     let options = Object.create( opts );
     if ( is.Function( opts )) {
@@ -185,13 +183,13 @@ const cookieFactory = function () {
     return ( options.converter || same )( cookie.getAll()[name]);
   };
 
-  cookie.forEach = function ( callback ) {
+  cookie.forEach = function( callback ) {
     const all = cookie.getAll();
     Object.keys( all ).forEach( callback );
     return cookie;
   };
 
-  cookie.forEach = function ( callback ) {
+  cookie.forEach = function( callback ) {
     const all = cookie.getAll();
     Object.keys( all ).forEach( callback );
     return cookie;
@@ -203,15 +201,22 @@ const cookieFactory = function () {
   return window && cookie;
 };
 
+let isNode = false;
+
+try {
+  window.document;
+} catch ( e ) {
+  isNode = true;
+}
 
 export default {
 
   // sessionStorage
-  session: storageFactory( sessionStorage ),
+  session: isNode ? null : storageFactory( sessionStorage ),
 
   // localStorage
-  storage: storageFactory( localStorage ),
+  storage: isNode ? null : storageFactory( localStorage ),
 
-  cookie: cookieFactory()
+  cookie: isNode ? null : cookieFactory()
 };
 

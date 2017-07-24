@@ -173,15 +173,20 @@ function handleTimeout( xhr, ontimeout ) {
 }
 
 
-// test window
-if ( is.Undefined( window )) {
-  throw Error( 'Hope: Ajax only for browser environment.' );
+let getXhr;
+
+try {
+  // test window
+  if ( is.Undefined( window )) {
+    throw Error( 'Hope: Ajax only for browser environment.' );
+  }
+  getXhr = window.XMLHttpRequest
+    ? () => new window.XMLHttpRequest()
+    : () => new window.ActiveXObject( 'Microsoft.XMLHTTP' );
+} catch ( e ) {
+  // server-side
+  getXhr = () => {};
 }
-
-const getXhr = window.XMLHttpRequest
-  ? () => new window.XMLHttpRequest()
-  : () => new window.ActiveXObject( 'Microsoft.XMLHTTP' );
-
 
 function fixXhr( xhr_, options ) {
 

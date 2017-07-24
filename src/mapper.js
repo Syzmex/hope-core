@@ -104,4 +104,13 @@ export default function mapper( options = {}) {
 }
 
 
-window.mapper = mapper;
+let isNode = false;
+
+try {
+  window.document;
+} catch ( e ) {
+  isNode = true;
+}
+if ( !isNode ) {
+  window.mapper = mapper;
+}
