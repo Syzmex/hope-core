@@ -1,6 +1,6 @@
 {
   "name": "hope-core",
-  "version": "0.3.59",
+  "version": "0.3.60",
   "description": "Common utils for SPA.",
   "repository": "https://github.com/Syzmex/hope-core.git",
   "keywords": [
@@ -24,9 +24,6 @@
     "start": "kiwiai server",
     "lint": "eslint --ext .js src",
     "precommit": "npm run lint"
-  },
-  "engines": {
-    "install-node": "6.9.2"
   },
   "dependencies": {
     "events": "^1.1.1",
