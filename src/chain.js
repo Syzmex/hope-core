@@ -21,7 +21,7 @@ function getResult( results ) {
 
 
 function setStatusWapper( chains ) {
-  return function ( resultSet ) {
+  return function( resultSet ) {
     try {
       setStatus( resultSet.chain, resultSet.err ? REJECTED : FULFILLED );
       return chains( resultSet );
@@ -36,7 +36,7 @@ function setStatusWapper( chains ) {
 
 
 function tryWapper( chains ) {
-  return function ( resultSet ) {
+  return function( resultSet ) {
     try {
       return chains( resultSet );
     } catch ( err ) {
@@ -47,7 +47,7 @@ function tryWapper( chains ) {
 
 
 function delayThrow( chains ) {
-  return function ( resultSet ) {
+  return function( resultSet ) {
     try {
       return chains( resultSet );
     } catch ( err ) {
@@ -62,7 +62,7 @@ function delayThrow( chains ) {
 
 // use in always method, catch a error and throw this error or throw the last error
 function throwWapper( callback ) {
-  return function ( resultSet ) {
+  return function( resultSet ) {
     callback(
       resultSet.err || null,
       resultSet.err ? null : resultSet.result,
@@ -77,7 +77,7 @@ function throwWapper( callback ) {
 
 
 function notThrowWapper( callback ) {
-  return function ( resultSet ) {
+  return function( resultSet ) {
     callback(
       resultSet.err || null,
       resultSet.err ? null : resultSet.result,
@@ -158,7 +158,7 @@ function initChain( callback ) {
     'Hope: You must pass a resolver function as the first argument to the chain constructor'
   );
 
-  return function ( resolve, reject ) {
+  return function( resolve, reject ) {
     try {
       callback( resolve, reject );
     } catch ( err ) {
@@ -235,7 +235,7 @@ class Chain {
 
     [ 'resolve', 'reject' ].forEach( func => {
       const body = this[func].bind( this );
-      this[func] = function ( ...args ) {
+      this[func] = function( ...args ) {
         return body( chains, ...args );
       };
     });

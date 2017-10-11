@@ -1,4 +1,4 @@
-{"serverTime":"2017-07-14 09:27:33","state":{"return": "true","code": "","info": ""},"data":[
+{"test":"2017-07-14 09:27:33","state":{"return": "true","code": "","info": ""},"data":[
  {
   "pLNamePyCode": "",
   "tel": "",
@@ -7,10 +7,10 @@
   "citeCounts": 0,
   "personLiable": "",
   "email": "",
-  "longitude": 0.,
+  "longitude": 0,
   "note": "",
   "bAId": 1,
-  "latitude": 0.,
+  "latitude": 0,
   "bAType": 1,
   "bAName": "蠡湖校区",
   "bACode": "01"

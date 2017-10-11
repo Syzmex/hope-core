@@ -66,8 +66,8 @@ const globalMap = {
     return alias;
   },
 
-  dataTransform( type_, response, error_, xhr_ ) {
-    return response;
+  dataTransform( type_, response, error, xhr_ ) {
+    return response || error;
   },
 
   assert( type_, response, resolve_, reject_ ) {
@@ -114,33 +114,36 @@ function getMethod({ data, method }) {
   return 'get';
 }
 
+function assignOption( obj, ...objs ) {
+  const newObj = Object.assign( obj, ...objs );
+  delete newObj[ajaxHandler];
+  return newObj;
+}
 
 function getOptions( url, options_ ) {
 
   const options = {};
 
-  // url is String, options is undefined/plain-object, two parameters
+  // url is String, options is undefined/plain-object, two arguments
   if ( is.String( url )) {
     options.url = url;
     if ( is.PlainObject( options_ )) {
-      Object.assign( options, options_ );
+      assignOption( options, options_ );
     }
     options.method = getMethod( options );
-    delete options[ajaxHandler];
 
-  // url is PlainObject, only one parameter
+  // url is PlainObject, only one argument
   } else if ( is.PlainObject( url )) {
-    Object.assign( options, url );
+    assignOption( options, url );
     options.method = getMethod( options );
-    delete options[ajaxHandler];
 
-  // url is Function, only one parameter
+  // url is Function, only one argument
   } else if ( is.Function( url )) {
     options[ajaxHandler] = url;
   }
 
   // dataType default 'json'
-  if ( is.Undefined( options.dataType ) || options.dataType === '' ) {
+  if ( !is.String( options.dataType ) || options.dataType === '' ) {
     options.dataType = 'json';
   }
 
@@ -157,6 +160,16 @@ function getOptions( url, options_ ) {
   }
 
   return options;
+}
+
+function composeWithResult( callback, lastHandle ) {
+  return ( ...results ) => {
+    const result = lastHandle( ...results );
+    if ( is.Defined( result )) {
+      return callback( result );
+    }
+    return callback( ...results );
+  };
 }
 
 
@@ -190,11 +203,11 @@ function Ajax( url, options ) {
     [ajaxSymbol]: true,
 
     then( callback ) {
-      handlerThen = handlerThen ? compose( callback, handlerThen ) : callback;
+      handlerThen = handlerThen ? composeWithResult( callback, handlerThen ) : callback;
     },
 
     catch( callback ) {
-      handlerCatch = handlerCatch ? compose( callback, handlerCatch ) : callback;
+      handlerCatch = handlerCatch ? composeWithResult( callback, handlerCatch ) : callback;
     },
 
     always( callback ) {
@@ -203,11 +216,11 @@ function Ajax( url, options ) {
     },
 
     before( callback ) {
-      handlerBefore = handlerBefore ? compose( callback, handlerBefore ) : callback;
+      handlerBefore = handlerBefore ? composeWithResult( callback, handlerBefore ) : callback;
     },
 
     finally( callback ) {
-      handlerFinally = handlerFinally ? compose( callback, handlerFinally ) : callback;
+      handlerFinally = handlerFinally ? composeWithResult( callback, handlerFinally ) : callback;
     },
 
     getXhr() {
@@ -249,12 +262,14 @@ function Ajax( url, options ) {
           return prev( ...result ).ajax( options || ajaxHandler );
         };
       } else {
+        const finallys = handlerFinally;
         next = ajaxHandler
           ? function( ...result ) {
-            return ajaxHandler( ...result ).finally( handlerFinally );
-          } : function() {
-            return Ajax( options ).finally( handlerFinally );
+            return ajaxHandler( ...result ).finally(( ...rs ) => finallys( ...result, ...rs ));
+          } : function( ...result ) {
+            return Ajax( options ).finally(( ...rs ) => finallys( ...result, ...rs ));
           };
+        handlerFinally = null;
       }
     } else {
       builders.push( options || ajaxHandler );
@@ -276,8 +291,13 @@ function Ajax( url, options ) {
 
   function append( funcName, ...args ) {
     const prev = next;
+    const needLastResults = [ 'ajax', 'get', 'post', 'put', 'delete', 'then',
+      'always', 'finally' ].includes( funcName );
+    const nextArgs = args.length === 1 && is.Function( args[0]) && needLastResults
+      ? ( result ) => [args[0].bind( undefined, ...result )]
+      : () => args;
     next = function( ...result ) {
-      return prev( ...result )[funcName]( ...args );
+      return prev( ...result )[funcName]( ...nextArgs( result ));
     };
   }
 
@@ -291,11 +311,9 @@ function Ajax( url, options ) {
     return builders.reduce(( xhrs, options ) => {
       let ajaxObject;
       if ( is.Function( options )) {
-        ajaxObject = options()
-          .always(() => remove( ajaxObject ));
+        ajaxObject = options().always(() => remove( ajaxObject ));
       } else {
-        ajaxObject = newAjax( options )
-          .always(() => remove( ajaxObject ));
+        ajaxObject = newAjax( options ).always(() => remove( ajaxObject ));
       }
       xhrs.push( ajaxObject );
       return xhrs;
@@ -306,20 +324,21 @@ function Ajax( url, options ) {
   function getNext( ajaxObject ) {
     invariant(
       isAjax( ajaxObject ),
-      'Hope: Expecting a ajax-object be returned.'
+      'Hope: Function of ajax() expecting a ajax-object be returned.'
     );
     getNextXhrs = ajaxObject.getXhr;
   }
 
 
   function connection() {
+
     if ( sending ) return;
 
     const xhrs = setXhrs();
     if ( handlerBefore ) {
       handlerBefore( ...xhrs );
     }
-    sending = Chain.all( xhrs ).then( results => {
+    sending = Chain.all( xhrs ).then(( results ) => {
       let result;
       if ( handlerThen ) {
         result = handlerThen( ...results );
@@ -331,14 +350,13 @@ function Ajax( url, options ) {
           getNext( next( ...results ));
         }
       }
-    }).catch( err => {
+    }).catch(( err ) => {
       if ( handlerCatch ) {
-        return handlerCatch( err.length === 1 ? err[0] : err );
+        handlerCatch( err.length === 1 ? err[0] : err );
       }
-      // throw err.length === 1 ? err[0] : err;
-    }).then(() => {
+    }).then(( ...results ) => {
       if ( handlerFinally ) {
-        handlerFinally();
+        handlerFinally( ...results );
       }
     });
   }
@@ -359,14 +377,13 @@ function Ajax( url, options ) {
   [ 'then', 'catch', 'before', 'always', 'finally' ].forEach( func => {
     const funcBody = chainMethod[func];
     chainMethod[func] = function( callback ) {
-      connection();
       if ( callback ) {
         funcBody( callback );
       }
+      connection();
       return chainMethod;
     };
   });
-
 
   // if next ajax is exist, all function will append to the next ajax
   [ 'ajax', 'get', 'post', 'put', 'delete', 'before', 'then', 'catch',

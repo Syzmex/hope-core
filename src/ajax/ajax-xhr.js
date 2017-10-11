@@ -384,23 +384,19 @@ function getOption({
     options.baseUrl = baseUrl;
   }
 
-  if ( is.PlainObject( data )) {
-    options.data = Object.assign({}, data );
+  if ( data ) {
+    options.data = is.PlainObject( data ) ? Object.assign({}, data ) : data;
   }
 
   if ( is.String( url ) && url ) {
     options.url = url;
   }
 
-  if ( withCredentials ) {
-    options.withCredentials = !!withCredentials;
-  }
+  options.withCredentials = !!withCredentials;
 
-  if ( crossDomain ) {
-    options.crossDomain = !!crossDomain;
-    if ( !options.crossDomain && options.headers['X-Requested-With'] === 'XMLHttpRequest' ) {
-      delete options.headers['X-Requested-With'];
-    }
+  options.crossDomain = !!crossDomain;
+  if ( !options.crossDomain && options.headers['X-Requested-With'] === 'XMLHttpRequest' ) {
+    delete options.headers['X-Requested-With'];
   }
 
   if ( is.String( user ) && user ) {
@@ -414,6 +410,7 @@ function getOption({
     options.dataType = dataType;
   }
 
+  // "arraybuffer", "blob", "document", "json", or "text"
   if ( 'ArrayBuffer' in window && data instanceof ArrayBuffer ) {
     options.dataType = 'arraybuffer';
   } else if ( 'Blob' in window && data instanceof Blob ) {
@@ -421,7 +418,7 @@ function getOption({
   } else if ( 'Document' in window && data instanceof Document ) {
     options.dataType = 'document';
   } else if ( 'FormData' in window && data instanceof FormData ) {
-    options.dataType = 'formdata';
+    options.dataType = 'json';
   }
 
   if ( is.Object( headers )) {
