@@ -355,7 +355,6 @@ function getOption({
   url,
   withCredentials,
   crossDomain,
-  // async,
   user,
   password,
   dataType,
@@ -363,6 +362,7 @@ function getOption({
 }) {
 
   const options = Object.assign({}, defaultOption );
+  options.headers = Object.assign({}, options.headers );
 
   if ( is.String( method ) && method ) {
     options.method = method;
@@ -432,7 +432,7 @@ function getOption({
 
   invariant(
     options.url || options.baseUrl,
-    'Hope: Url or BaseUrl must be a non-empty string.'
+    'Hope: One of Url and BaseUrl must be a non-empty string.'
   );
 
   return options;
