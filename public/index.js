@@ -8,6 +8,30 @@ import * as hope from '../src';
 console.log( hope );
 
 const { Ajax } = hope;
+
+Ajax(() => {console.log("ajax:", 1)
+  return Ajax( '/test.json' ).done(( data ) => {
+    console.log("data:", data)
+  }).done(( data ) => {
+    console.log("data2:", data)
+  });
+}).ajax(() => {console.log("ajax:", 2)
+  return Ajax( '/test2.json' ).done(( data ) => {
+    console.log("data:", data)
+  }).done(( data ) => {
+    console.log("data2:", data)
+  });
+}).done(( ...data ) => {
+  console.log("data3:", data)
+}).catch(() => {
+  console.log("111:", 111)
+})/*.ajax(() => {
+  return Ajax( '/test.json' ).done(( data ) => {
+    console.log("data3:", data)
+  });
+}).done(() => {
+  console.log("data4:", data)
+});*/
 // console.log(Ajax( '/test.json' ))
 // const ajax = Ajax( '/test.json' ).before(( ...chains ) => {
 //   console.log( 'before:', chains )

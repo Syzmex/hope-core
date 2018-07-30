@@ -311,7 +311,12 @@ function Ajax( url, options ) {
     return builders.reduce(( xhrs, options ) => {
       let ajaxObject;
       if ( is.Function( options )) {
-        ajaxObject = options().always(() => remove( ajaxObject ));
+        const ajax = options();
+        invariant(
+          isAjax( ajax ),
+          'Hope: Function of ajax() expecting a ajax-object be returned.'
+        );
+        ajaxObject = ajax.getXhr()[0].always(() => remove( ajaxObject ));
       } else {
         ajaxObject = newAjax( options ).always(() => remove( ajaxObject ));
       }
@@ -338,7 +343,8 @@ function Ajax( url, options ) {
     if ( handlerBefore ) {
       handlerBefore( ...xhrs );
     }
-    sending = Chain.all( xhrs ).then(( results ) => {
+
+    sending = Chain.all( xhrs ).then(( ...results ) => {
       let result;
       if ( handlerThen ) {
         result = handlerThen( ...results );

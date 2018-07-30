@@ -1,6 +1,6 @@
 
 export default {
-  port: 8000,
+  port: 3000,
   proxy: {
     '/cui/do/*': {
       target: 'http://192.168.1.3',

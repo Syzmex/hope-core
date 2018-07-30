@@ -198,7 +198,7 @@ class Chain {
         if ( chs.some( chain => chain._state === REJECTED )) {
           chn.reject( ...chainResults );
         }
-        chn.resolve( chainResults );
+        chn.resolve( ...chainResults );
       }
     }
     chains.forEach( chain => {
@@ -279,7 +279,7 @@ class Chain {
       };
       if ( chains ) {
         this._set = chains( this._set );
-        this._result = this._set.result;
+        // this._result = this._set.result;
       } else {
         removeSet( this );
         this._sync = true;
@@ -300,7 +300,7 @@ class Chain {
       };
       if ( chains ) {
         this._set = chains( this._set );
-        this._result = this._set.result;
+        // this._result = this._set.result;
       } else {
         removeSet( this );
         this._sync = true;
