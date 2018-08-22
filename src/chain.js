@@ -132,21 +132,21 @@ const METHOD = {
     return chains ? compose( wrapped, chains ) : wrapped;
   },
   catchMethod( chains, callback ) {
-    const wrapped = compose( setStatusWapper, catcherWrapper )( callback );
+    const wrapped = compose( catcherWrapper )( callback );
     return chains ? compose( wrapped, tryWapper( chains )) : wrapped;
   },
   alwaysMethod( chains, callback ) {
-    const wrapped = compose( setStatusWapper, throwWapper )( callback );
+    const wrapped = compose( throwWapper )( callback );
     return chains ? compose( wrapped, tryWapper( chains )) : wrapped;
   },
   thenSyncMethod( callback ) {
     return compose( delayThrow, setStatusWapper, thenerWrapper )( callback );
   },
   catchSyncMethod( callback ) {
-    return compose( delayThrow, setStatusWapper, catcherWrapper )( callback );
+    return compose( delayThrow, catcherWrapper )( callback );
   },
   alwaysSyncMethod( callback ) {
-    return compose( delayThrow, setStatusWapper, notThrowWapper )( callback );
+    return compose( delayThrow, notThrowWapper )( callback );
   }
 };
 
